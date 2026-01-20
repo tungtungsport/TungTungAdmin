@@ -15,6 +15,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'th-test-11.slatic.net',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
