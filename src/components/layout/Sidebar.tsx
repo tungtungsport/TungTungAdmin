@@ -11,13 +11,15 @@ import {
     BarChart3,
     ChevronLeft,
     ChevronRight,
-    MessageSquare
+    MessageSquare,
+    RotateCcw
 } from "lucide-react";
 
 const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Products", href: "/dashboard/products", icon: Package },
     { name: "Orders", href: "/dashboard/orders", icon: ShoppingCart },
+    { name: "Returns", href: "/dashboard/returns", icon: RotateCcw },
     { name: "Customers", href: "/dashboard/customers", icon: Users },
     { name: "Favorites", href: "/dashboard/favorites", icon: Heart },
 ];

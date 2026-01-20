@@ -93,7 +93,7 @@ export default function DashboardPage() {
             const { data: salesData } = await supabase
                 .from('orders')
                 .select('total')
-                .eq('status', 'COMPLETED');
+                .eq('status', 'SELESAI');
             const totalSales = salesData?.reduce((sum, o) => sum + o.total, 0) || 0;
 
             // Fetch orders today
@@ -352,13 +352,14 @@ export default function DashboardPage() {
                                         <td className="py-4 px-4 text-[#BFD3C6]">{new Date(order.created_at).toLocaleDateString('id-ID')}</td>
                                         <td className="py-4 px-4 font-numeric text-white">Rp {order.total.toLocaleString('id-ID')}</td>
                                         <td className="py-4 px-4">
-                                            <span className={`inline-block px-3 py-1 text-xs font-bold uppercase rounded-sm ${order.status === 'COMPLETED' ? 'bg-[#1E7F43]/30 text-[#7CFF9B] border border-[#1E7F43]' :
-                                                order.status === 'SHIPPED' ? 'bg-blue-500/20 text-blue-400' :
-                                                    order.status === 'PROCESSING' ? 'bg-[#F2E94E]/20 text-[#F2E94E]' :
-                                                        order.status === 'PAID' ? 'bg-[#1E7F43]/20 text-[#7CFF9B]' :
-                                                            'bg-gray-600/20 text-gray-400'
+                                            <span className={`inline-block px-3 py-1 text-xs font-bold uppercase rounded-sm ${order.status === 'SELESAI' ? 'bg-[#1E7F43]/30 text-[#7CFF9B] border border-[#1E7F43]' :
+                                                order.status === 'DIKIRIM' ? 'bg-cyan-500/20 text-cyan-400' :
+                                                    order.status === 'DIKEMAS' ? 'bg-yellow-500/20 text-yellow-500' :
+                                                        order.status === 'TELAH_TIBA' ? 'bg-blue-500/20 text-blue-400' :
+                                                            order.status === 'DIKONFIRMASI' ? 'bg-purple-500/20 text-purple-400' :
+                                                                'bg-gray-600/20 text-gray-400'
                                                 }`}>
-                                                {order.status}
+                                                {order.status.replace(/_/g, ' ')}
                                             </span>
                                         </td>
                                     </tr>
