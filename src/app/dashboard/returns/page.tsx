@@ -218,7 +218,7 @@ export default function ReturnsPage() {
                                                 <p className="text-xs text-[#BFD3C6]">Qty: {item.quantity} | Size: {item.size || '-'}</p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-[#7CFF9B] text-sm font-bold">Rp {item.unit_price.toLocaleString('id-ID')}</p>
+                                                <p className="text-[#7CFF9B] text-sm font-bold">Rp {(item.unit_price || 0).toLocaleString('id-ID')}</p>
                                             </div>
                                         </div>
                                     ))}

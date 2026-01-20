@@ -29,69 +29,104 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<AdminUser | null>(null);
     const router = useRouter();
 
+    // Track the last processed session to prevent redundant fetches
+    const [lastSessionId, setLastSessionId] = useState<string | null>(null);
+
     // Fetch user profile and verify admin role
     const fetchAdminProfile = async (authUser: User) => {
-        const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', authUser.id)
-            .single();
+        try {
+            console.log('Fetching admin profile for:', authUser.id);
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', authUser.id)
+                .maybeSingle();
 
-        if (error || !data) {
-            console.error('Error fetching profile:', error);
+            if (error) {
+                console.error('Database error fetching profile:', {
+                    code: error.code,
+                    message: error.message,
+                    details: error.details
+                });
+                return null;
+            }
+
+            if (!data) {
+                console.warn('No profile found for authenticated user:', authUser.id);
+                return null;
+            }
+
+            // Verify admin role
+            if (data.role !== 'admin') {
+                console.warn('User is not an admin:', data.email, 'Role:', data.role);
+                return null;
+            }
+
+            return {
+                id: data.id,
+                email: data.email,
+                name: data.name,
+                role: data.role
+            } as AdminUser;
+        } catch (err) {
+            console.error('Unexpected error in fetchAdminProfile:', err);
             return null;
         }
-
-        // Verify admin role
-        if (data.role !== 'admin') {
-            return null;
-        }
-
-        return {
-            id: data.id,
-            email: data.email,
-            name: data.name,
-            role: data.role
-        } as AdminUser;
     };
 
     // Initialize auth state
     useEffect(() => {
-        supabase.auth.getSession().then(async ({ data: { session } }) => {
+        let isMounted = true;
+
+        const syncAuth = async (session: Session | null) => {
+            const sessionId = session?.user?.id || null;
+
+            // Deduplicate: Don't re-process if the user ID hasn't changed
+            if (sessionId === lastSessionId && (sessionId !== null || user !== null)) {
+                return;
+            }
+
             if (session?.user) {
+                setLastSessionId(session.user.id);
                 const adminProfile = await fetchAdminProfile(session.user);
+
+                if (!isMounted) return;
+
                 if (adminProfile) {
                     setUser(adminProfile);
                     setIsAuthenticated(true);
                 } else {
-                    // Not an admin, sign out
-                    await supabase.auth.signOut();
-                }
-            }
-            setIsLoading(false);
-        });
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
-                if (session?.user) {
-                    const adminProfile = await fetchAdminProfile(session.user);
-                    if (adminProfile) {
-                        setUser(adminProfile);
-                        setIsAuthenticated(true);
-                    } else {
-                        setUser(null);
-                        setIsAuthenticated(false);
-                    }
-                } else {
+                    // Not an admin or error fetching profile, sign out
                     setUser(null);
                     setIsAuthenticated(false);
+                    await supabase.auth.signOut();
                 }
-                setIsLoading(false);
+            } else {
+                setLastSessionId(null);
+                setUser(null);
+                setIsAuthenticated(false);
+            }
+
+            if (isMounted) setIsLoading(false);
+        };
+
+        // Initial session check
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (isMounted) syncAuth(session);
+        });
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            async (_event, session) => {
+                if (isMounted) syncAuth(session);
             }
         );
 
-        return () => subscription.unsubscribe();
-    }, []);
+        return () => {
+            isMounted = false;
+            subscription.unsubscribe();
+        };
+    }, [lastSessionId, user]);
 
     const signUp = async (email: string, password: string, name: string) => {
         const { data, error: authError } = await supabase.auth.signUp({
