@@ -3,6 +3,7 @@
 import { supabase } from "@/lib/supabase";
 import { Search, Loader2, User, Package, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
+import { DateFilter, useDateFilter } from "@/components/DateFilter";
 
 interface Customer {
     id: string;
@@ -20,19 +21,36 @@ export default function CustomersPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [isLoading, setIsLoading] = useState(true);
 
+    // Date filter
+    const {
+        filterPeriod, setFilterPeriod,
+        selectedMonth, setSelectedMonth,
+        selectedYear, setSelectedYear,
+        selectedDate, setSelectedDate,
+        getDateRange
+    } = useDateFilter('all');
+
     useEffect(() => {
         fetchCustomers();
-    }, []);
+    }, [getDateRange]);
 
     const fetchCustomers = async () => {
         setIsLoading(true);
+        const { startDate, endDate } = getDateRange;
 
         // Fetch customers (profiles with role = 'customer') with order counts
-        const { data: profiles, error: profilesError } = await supabase
+        let query = supabase
             .from('profiles')
             .select('*')
             .eq('role', 'customer')
             .order('created_at', { ascending: false });
+
+        // Apply date filter if not "all"
+        if (startDate && endDate) {
+            query = query.gte('created_at', startDate).lte('created_at', endDate);
+        }
+
+        const { data: profiles, error: profilesError } = await query;
 
         if (profilesError) {
             console.error('Error fetching customers:', profilesError);
@@ -93,9 +111,21 @@ export default function CustomersPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div>
-                <h1 className="font-heading text-2xl text-white uppercase tracking-wide">Customers</h1>
-                <p className="text-[#BFD3C6] text-sm mt-1">{customers.length} registered customers</p>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h1 className="font-heading text-2xl text-white uppercase tracking-wide">Customers</h1>
+                    <p className="text-[#BFD3C6] text-sm mt-1">{filteredCustomers.length} customers ditampilkan</p>
+                </div>
+                <DateFilter
+                    filterPeriod={filterPeriod}
+                    setFilterPeriod={setFilterPeriod}
+                    selectedMonth={selectedMonth}
+                    setSelectedMonth={setSelectedMonth}
+                    selectedYear={selectedYear}
+                    setSelectedYear={setSelectedYear}
+                    selectedDate={selectedDate}
+                    setSelectedDate={setSelectedDate}
+                />
             </div>
 
             {/* Search */}

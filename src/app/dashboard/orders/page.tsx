@@ -3,6 +3,7 @@
 import { supabase } from "@/lib/supabase";
 import { Search, Filter, Truck, Check, Loader2, XCircle, Eye, X, Image as ImageIcon } from "lucide-react";
 import { useState, useEffect } from "react";
+import { DateFilter, useDateFilter } from "@/components/DateFilter";
 
 // New 9-status system (Indonesian) - includes MENUNGGU_KONFIRMASI and TELAH_TIBA
 type OrderStatus = "BELUM_BAYAR" | "MENUNGGU_KONFIRMASI" | "DIKONFIRMASI" | "DIKEMAS" | "DIKIRIM" | "TELAH_TIBA" | "SELESAI" | "PENGEMBALIAN" | "DIBATALKAN";
@@ -74,13 +75,24 @@ export default function OrdersPage() {
     const [paymentProof, setPaymentProof] = useState<PaymentProof | null>(null);
     const [loadingProof, setLoadingProof] = useState(false);
 
+    // Date filter
+    const {
+        filterPeriod, setFilterPeriod,
+        selectedMonth, setSelectedMonth,
+        selectedYear, setSelectedYear,
+        selectedDate, setSelectedDate,
+        getDateRange
+    } = useDateFilter('all');
+
     useEffect(() => {
         fetchOrders();
-    }, []);
+    }, [getDateRange]);
 
     const fetchOrders = async () => {
         setIsLoading(true);
-        const { data, error } = await supabase
+        const { startDate, endDate } = getDateRange;
+
+        let query = supabase
             .from('orders')
             .select(`
                 *,
@@ -88,6 +100,13 @@ export default function OrdersPage() {
                 order_items (id, product_name, quantity, unit_price, size, product_image)
             `)
             .order('created_at', { ascending: false });
+
+        // Apply date filter if not "all"
+        if (startDate && endDate) {
+            query = query.gte('created_at', startDate).lte('created_at', endDate);
+        }
+
+        const { data, error } = await query;
 
         if (error) {
             console.error('Error fetching orders:', error);
@@ -222,9 +241,21 @@ export default function OrdersPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div>
-                <h1 className="font-heading text-2xl text-white uppercase tracking-wide">Orders</h1>
-                <p className="text-[#BFD3C6] text-sm mt-1">{orders.length} total pesanan</p>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h1 className="font-heading text-2xl text-white uppercase tracking-wide">Orders</h1>
+                    <p className="text-[#BFD3C6] text-sm mt-1">{filteredOrders.length} pesanan ditampilkan</p>
+                </div>
+                <DateFilter
+                    filterPeriod={filterPeriod}
+                    setFilterPeriod={setFilterPeriod}
+                    selectedMonth={selectedMonth}
+                    setSelectedMonth={setSelectedMonth}
+                    selectedYear={selectedYear}
+                    setSelectedYear={setSelectedYear}
+                    selectedDate={selectedDate}
+                    setSelectedDate={setSelectedDate}
+                />
             </div>
 
             {/* Filters */}
@@ -244,7 +275,6 @@ export default function OrdersPage() {
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Filter className="h-4 w-4 text-[#BFD3C6]" />
                     <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}

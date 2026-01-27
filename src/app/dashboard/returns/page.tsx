@@ -3,6 +3,7 @@
 import { supabase } from "@/lib/supabase";
 import { Search, Filter, RotateCcw, Check, X, Loader2, Eye, MessageSquare } from "lucide-react";
 import { useState, useEffect } from "react";
+import { DateFilter, useDateFilter } from "@/components/DateFilter";
 
 interface Return {
     id: string;
@@ -31,13 +32,24 @@ export default function ReturnsPage() {
     const [isProcessing, setIsProcessing] = useState(false);
     const [adminNotes, setAdminNotes] = useState("");
 
+    // Date filter
+    const {
+        filterPeriod, setFilterPeriod,
+        selectedMonth, setSelectedMonth,
+        selectedYear, setSelectedYear,
+        selectedDate, setSelectedDate,
+        getDateRange
+    } = useDateFilter('all');
+
     useEffect(() => {
         fetchReturns();
-    }, []);
+    }, [getDateRange]);
 
     const fetchReturns = async () => {
         setIsLoading(true);
-        const { data, error } = await supabase
+        const { startDate, endDate } = getDateRange;
+
+        let query = supabase
             .from('returns')
             .select(`
                 *,
@@ -45,6 +57,13 @@ export default function ReturnsPage() {
                 orders (order_number)
             `)
             .order('created_at', { ascending: false });
+
+        // Apply date filter if not "all"
+        if (startDate && endDate) {
+            query = query.gte('created_at', startDate).lte('created_at', endDate);
+        }
+
+        const { data, error } = await query;
 
         if (error) {
             console.error('Error fetching returns:', error);
@@ -106,9 +125,21 @@ export default function ReturnsPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="font-heading text-2xl text-white uppercase tracking-wide">Return Requests</h1>
-                <p className="text-[#BFD3C6] text-sm mt-1">{returns.length} total permintaan pengembalian</p>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h1 className="font-heading text-2xl text-white uppercase tracking-wide">Return Requests</h1>
+                    <p className="text-[#BFD3C6] text-sm mt-1">{filteredReturns.length} permintaan ditampilkan</p>
+                </div>
+                <DateFilter
+                    filterPeriod={filterPeriod}
+                    setFilterPeriod={setFilterPeriod}
+                    selectedMonth={selectedMonth}
+                    setSelectedMonth={setSelectedMonth}
+                    selectedYear={selectedYear}
+                    setSelectedYear={setSelectedYear}
+                    selectedDate={selectedDate}
+                    setSelectedDate={setSelectedDate}
+                />
             </div>
 
             {/* Filters */}

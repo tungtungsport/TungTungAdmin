@@ -1,13 +1,17 @@
 "use client";
 
 import { supabase } from "@/lib/supabase";
-import { TrendingUp, TrendingDown, Package, ShoppingCart, AlertTriangle, Heart, Loader2, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, Package, ShoppingCart, AlertTriangle, Heart, Loader2, BarChart3, Calendar, Filter } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+
+// Filter types
+type FilterPeriod = 'all' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'specific_month' | 'specific_date';
+const MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
 interface DashboardStats {
     totalSales: number;
-    ordersToday: number;
+    totalOrders: number;
     lowStockProducts: number;
     totalFavorites: number;
 }
@@ -28,6 +32,12 @@ interface BestSeller {
 interface DailySales {
     day: string;
     sales: number;
+}
+
+interface MonthlySales {
+    month: string;
+    sales: number;
+    cumulative: number;
 }
 
 interface RecentOrder {
@@ -75,33 +85,100 @@ function StatCard({ title, value, trend, icon: Icon, color = "accent" }: {
 export default function DashboardPage() {
     const [stats, setStats] = useState<DashboardStats>({
         totalSales: 0,
-        ordersToday: 0,
+        totalOrders: 0,
         lowStockProducts: 0,
         totalFavorites: 0
     });
     const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
     const [bestSellers, setBestSellers] = useState<BestSeller[]>([]);
     const [dailySales, setDailySales] = useState<DailySales[]>([]);
+    const [monthlySales, setMonthlySales] = useState<MonthlySales[]>([]);
     const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    // Filter state
+    const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('all');
+    const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
+    const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+    const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+
+
+    // Calculate date range based on filter
+    const getDateRange = useMemo(() => {
+        const now = new Date();
+        let startDate: Date | null = null;
+        let endDate: Date | null = null;
+
+        switch (filterPeriod) {
+            case 'all':
+                return { startDate: null, endDate: null };
+            case 'daily':
+                startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+                break;
+            case 'weekly':
+                const dayOfWeek = now.getDay();
+                startDate = new Date(now);
+                startDate.setDate(now.getDate() - dayOfWeek);
+                startDate.setHours(0, 0, 0, 0);
+                endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + 6);
+                endDate.setHours(23, 59, 59, 999);
+                break;
+            case 'monthly':
+                startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                break;
+            case 'yearly':
+                startDate = new Date(now.getFullYear(), 0, 1);
+                endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+                break;
+            case 'specific_month':
+                startDate = new Date(selectedYear, selectedMonth, 1);
+                endDate = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59);
+                break;
+            case 'specific_date':
+                const date = new Date(selectedDate);
+                startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
+                break;
+        }
+
+        return {
+            startDate: startDate?.toISOString() || null,
+            endDate: endDate?.toISOString() || null
+        };
+    }, [filterPeriod, selectedMonth, selectedYear, selectedDate]);
 
     useEffect(() => {
         async function fetchDashboardData() {
             setIsLoading(true);
+            const { startDate, endDate } = getDateRange;
 
-            // Fetch total sales (sum of completed orders)
-            const { data: salesData } = await supabase
+            // Fetch total sales (sum of completed orders) within date range
+            let salesQuery = supabase
                 .from('orders')
                 .select('total')
                 .eq('status', 'SELESAI');
+
+            if (startDate && endDate) {
+                salesQuery = salesQuery.gte('created_at', startDate).lte('created_at', endDate);
+            }
+
+            const { data: salesData } = await salesQuery;
             const totalSales = salesData?.reduce((sum, o) => sum + o.total, 0) || 0;
 
-            // Fetch orders today
-            const today = new Date().toISOString().split('T')[0];
-            const { count: ordersToday } = await supabase
+            // Fetch total orders count within date range
+            let ordersQuery = supabase
                 .from('orders')
-                .select('*', { count: 'exact', head: true })
-                .gte('created_at', `${today}T00:00:00`);
+                .select('*', { count: 'exact', head: true });
+
+            if (startDate && endDate) {
+                ordersQuery = ordersQuery.gte('created_at', startDate).lte('created_at', endDate);
+            }
+
+            const { count: totalOrders } = await ordersQuery;
+
 
             // Fetch low stock products (stock <= 5)
             const { count: lowStockProducts } = await supabase
@@ -117,7 +194,7 @@ export default function DashboardPage() {
 
             setStats({
                 totalSales,
-                ordersToday: ordersToday || 0,
+                totalOrders: totalOrders || 0,
                 lowStockProducts: lowStockProducts || 0,
                 totalFavorites: totalFavorites || 0
             });
@@ -166,6 +243,36 @@ export default function DashboardPage() {
             }
             setDailySales(salesByDay);
 
+            // Fetch monthly sales for the last 6 months
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthlyData: MonthlySales[] = [];
+            let cumulative = 0;
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date();
+                date.setMonth(date.getMonth() - i);
+                const year = date.getFullYear();
+                const month = date.getMonth();
+                const startOfMonth = `${year}-${String(month + 1).padStart(2, '0')}-01T00:00:00`;
+                const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
+
+                const { data: monthSalesData } = await supabase
+                    .from('orders')
+                    .select('total')
+                    .gte('created_at', startOfMonth)
+                    .lte('created_at', endOfMonth)
+                    .eq('status', 'SELESAI');
+
+                const monthTotal = monthSalesData?.reduce((sum, o) => sum + o.total, 0) || 0;
+                cumulative += monthTotal;
+                monthlyData.push({
+                    month: months[month],
+                    sales: monthTotal,
+                    cumulative: cumulative
+                });
+            }
+            setMonthlySales(monthlyData);
+
+
             // Fetch recent orders with customer info
             const { data: ordersData } = await supabase
                 .from('orders')
@@ -194,7 +301,7 @@ export default function DashboardPage() {
         }
 
         fetchDashboardData();
-    }, []);
+    }, [getDateRange]);
 
     if (isLoading) {
         return (
@@ -210,9 +317,67 @@ export default function DashboardPage() {
     return (
         <div className="space-y-8">
             {/* Page Header */}
-            <div>
-                <h1 className="font-heading text-2xl text-white uppercase tracking-wide">Dashboard & Reports</h1>
-                <p className="text-[#BFD3C6] text-sm mt-1">Welcome back, Admin. Here&apos;s your store summary and analytics.</p>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h1 className="font-heading text-2xl text-white uppercase tracking-wide">Dashboard & Reports</h1>
+                    <p className="text-[#BFD3C6] text-sm mt-1">Welcome back, Admin. Here&apos;s your store summary and analytics.</p>
+                </div>
+
+                {/* Filter Controls */}
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4 text-[#7CFF9B]" />
+                        <select
+                            value={filterPeriod}
+                            onChange={(e) => setFilterPeriod(e.target.value as FilterPeriod)}
+                            className="bg-[#0A1A13] border border-[#1A4D35] text-white text-sm px-3 py-2 rounded focus:border-[#7CFF9B] outline-none"
+                        >
+                            <option value="all">Semua Waktu</option>
+                            <option value="daily">Hari Ini</option>
+                            <option value="weekly">Minggu Ini</option>
+                            <option value="monthly">Bulan Ini</option>
+                            <option value="yearly">Tahun Ini</option>
+                            <option value="specific_month">Pilih Bulan</option>
+                            <option value="specific_date">Pilih Tanggal</option>
+                        </select>
+
+                    </div>
+
+                    {filterPeriod === 'specific_month' && (
+                        <div className="flex items-center gap-2">
+                            <select
+                                value={selectedMonth}
+                                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                                className="bg-[#0A1A13] border border-[#1A4D35] text-white text-sm px-3 py-2 rounded focus:border-[#7CFF9B] outline-none"
+                            >
+                                {MONTHS.map((month, idx) => (
+                                    <option key={idx} value={idx}>{month}</option>
+                                ))}
+                            </select>
+                            <select
+                                value={selectedYear}
+                                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                                className="bg-[#0A1A13] border border-[#1A4D35] text-white text-sm px-3 py-2 rounded focus:border-[#7CFF9B] outline-none"
+                            >
+                                {[2024, 2025, 2026].map((year) => (
+                                    <option key={year} value={year}>{year}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
+                    {filterPeriod === 'specific_date' && (
+                        <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-[#BFD3C6]" />
+                            <input
+                                type="date"
+                                value={selectedDate}
+                                onChange={(e) => setSelectedDate(e.target.value)}
+                                className="bg-[#0A1A13] border border-[#1A4D35] text-white text-sm px-3 py-2 rounded focus:border-[#7CFF9B] outline-none"
+                            />
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Stats Grid */}
@@ -223,8 +388,8 @@ export default function DashboardPage() {
                     icon={TrendingUp}
                 />
                 <StatCard
-                    title="Orders Today"
-                    value={stats.ordersToday}
+                    title="Total Orders"
+                    value={stats.totalOrders}
                     icon={ShoppingCart}
                 />
                 <StatCard
@@ -268,6 +433,70 @@ export default function DashboardPage() {
                             <span className="text-[#BFD3C6] text-xs font-bold">{data.day}</span>
                         </div>
                     ))}
+                </div>
+            </div>
+
+            {/* Monthly Total Sales Chart */}
+            <div className="bg-[#0F2A1E] border border-[#1A4D35] p-6">
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                        <TrendingUp className="h-5 w-5 text-[#7CFF9B]" />
+                        <h3 className="font-heading text-white text-sm uppercase tracking-wider">Total Sales Trend (Last 6 Months)</h3>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-[#BFD3C6] text-xs">Cumulative Total</p>
+                        <p className="font-numeric text-[#7CFF9B] font-bold">
+                            Rp {((monthlySales[monthlySales.length - 1]?.cumulative || 0) / 1000000).toFixed(1)}M
+                        </p>
+                    </div>
+                </div>
+                <div className="relative">
+                    {/* Bar Chart with Cumulative Line */}
+                    <div className="flex items-end justify-between gap-4 h-48">
+                        {monthlySales.map((data, i) => {
+                            const maxMonthSales = Math.max(...monthlySales.map(d => d.sales), 1);
+                            const maxCumulative = monthlySales[monthlySales.length - 1]?.cumulative || 1;
+                            const barHeight = (data.sales / maxMonthSales) * 100;
+                            const lineY = 100 - ((data.cumulative / maxCumulative) * 80);
+
+                            return (
+                                <div key={i} className="flex-1 flex flex-col items-center gap-2 relative">
+                                    <div className="w-full flex flex-col items-center justify-end h-40 relative">
+                                        {/* Bar */}
+                                        <div
+                                            className="w-full bg-[#1E7F43] hover:bg-[#7CFF9B] transition-colors cursor-pointer group relative"
+                                            style={{ height: `${barHeight}%`, minHeight: '8px' }}
+                                        >
+                                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-[#0A1A13] border border-[#1A4D35] px-2 py-1 text-xs text-white whitespace-nowrap z-10">
+                                                Rp {(data.sales / 1000000).toFixed(1)}M
+                                            </div>
+                                        </div>
+                                        {/* Cumulative dot */}
+                                        <div
+                                            className="absolute w-3 h-3 bg-cyan-400 rounded-full border-2 border-white shadow-lg z-20 group cursor-pointer"
+                                            style={{ bottom: `${(data.cumulative / maxCumulative) * 80}%`, left: '50%', transform: 'translateX(-50%)' }}
+                                        >
+                                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-[#0A1A13] border border-cyan-500/50 px-2 py-1 text-xs text-cyan-400 whitespace-nowrap z-30">
+                                                Total: Rp {(data.cumulative / 1000000).toFixed(1)}M
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span className="text-[#BFD3C6] text-xs font-bold">{data.month}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    {/* Legend */}
+                    <div className="flex items-center justify-center gap-6 mt-4 pt-4 border-t border-[#1A4D35]">
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-3 bg-[#1E7F43] rounded-sm"></div>
+                            <span className="text-[#BFD3C6] text-xs">Monthly Sales</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-cyan-400 rounded-full"></div>
+                            <span className="text-[#BFD3C6] text-xs">Cumulative Total</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
