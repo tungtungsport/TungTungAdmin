@@ -319,8 +319,8 @@ export default function DashboardPage() {
             {/* Page Header */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
-                    <h1 className="font-heading text-2xl text-white uppercase tracking-wide">Dashboard & Reports</h1>
-                    <p className="text-[#BFD3C6] text-sm mt-1">Welcome back, Admin. Here&apos;s your store summary and analytics.</p>
+                    <h1 className="font-heading text-2xl text-white uppercase tracking-wide">Dasbor & Laporan</h1>
+                    <p className="text-[#BFD3C6] text-sm mt-1">Selamat datang kembali, Admin. Berikut ringkasan toko dan analitik Anda.</p>
                 </div>
 
                 {/* Filter Controls */}
@@ -383,23 +383,23 @@ export default function DashboardPage() {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
-                    title="Total Sales"
+                    title="Total Penjualan"
                     value={`Rp ${(stats.totalSales / 1000000).toFixed(1)}M`}
                     icon={TrendingUp}
                 />
                 <StatCard
-                    title="Total Orders"
+                    title="Total Pesanan"
                     value={stats.totalOrders}
                     icon={ShoppingCart}
                 />
                 <StatCard
-                    title="Low Stock Alert"
+                    title="Peringatan Stok Rendah"
                     value={stats.lowStockProducts}
                     icon={AlertTriangle}
                     color="warning"
                 />
                 <StatCard
-                    title="Total Favorites"
+                    title="Total Favorit"
                     value={stats.totalFavorites}
                     icon={Heart}
                 />
@@ -410,10 +410,10 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <BarChart3 className="h-5 w-5 text-[#7CFF9B]" />
-                        <h3 className="font-heading text-white text-sm uppercase tracking-wider">Sales Over Time (Last 7 Days)</h3>
+                        <h3 className="font-heading text-white text-sm uppercase tracking-wider">Penjualan dari Waktu ke Waktu (7 Hari Terakhir)</h3>
                     </div>
                     <div className="text-right">
-                        <p className="text-[#BFD3C6] text-xs">Weekly Total</p>
+                        <p className="text-[#BFD3C6] text-xs">Total Mingguan</p>
                         <p className="font-numeric text-[#7CFF9B] font-bold">Rp {(totalWeekSales / 1000000).toFixed(1)}M</p>
                     </div>
                 </div>
@@ -441,10 +441,10 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <TrendingUp className="h-5 w-5 text-[#7CFF9B]" />
-                        <h3 className="font-heading text-white text-sm uppercase tracking-wider">Total Sales Trend (Last 6 Months)</h3>
+                        <h3 className="font-heading text-white text-sm uppercase tracking-wider">Tren Total Penjualan (6 Bulan Terakhir)</h3>
                     </div>
                     <div className="text-right">
-                        <p className="text-[#BFD3C6] text-xs">Cumulative Total</p>
+                        <p className="text-[#BFD3C6] text-xs">Total Kumulatif</p>
                         <p className="font-numeric text-[#7CFF9B] font-bold">
                             Rp {((monthlySales[monthlySales.length - 1]?.cumulative || 0) / 1000000).toFixed(1)}M
                         </p>
@@ -490,11 +490,11 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-center gap-6 mt-4 pt-4 border-t border-[#1A4D35]">
                         <div className="flex items-center gap-2">
                             <div className="w-4 h-3 bg-[#1E7F43] rounded-sm"></div>
-                            <span className="text-[#BFD3C6] text-xs">Monthly Sales</span>
+                            <span className="text-[#BFD3C6] text-xs">Penjualan Bulanan</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="w-3 h-3 bg-cyan-400 rounded-full"></div>
-                            <span className="text-[#BFD3C6] text-xs">Cumulative Total</span>
+                            <span className="text-[#BFD3C6] text-xs">Total Kumulatif</span>
                         </div>
                     </div>
                 </div>
@@ -505,10 +505,10 @@ export default function DashboardPage() {
                 <div className="bg-[#0F2A1E] border border-[#1A4D35] p-6">
                     <div className="flex items-center gap-3 mb-4">
                         <ShoppingCart className="h-5 w-5 text-[#7CFF9B]" />
-                        <h3 className="font-heading text-white text-sm uppercase tracking-wider">Best Selling Products</h3>
+                        <h3 className="font-heading text-white text-sm uppercase tracking-wider">Produk Terlaris</h3>
                     </div>
                     {bestSellers.length === 0 ? (
-                        <p className="text-[#BFD3C6] text-center py-4">No sales data yet</p>
+                        <p className="text-[#BFD3C6] text-center py-4">Belum ada data penjualan</p>
                     ) : (
                         <div className="space-y-3">
                             {bestSellers.map((item, i) => (
@@ -517,7 +517,7 @@ export default function DashboardPage() {
                                         <span className="font-numeric text-[#7CFF9B] text-sm w-6">{i + 1}</span>
                                         <p className="text-white text-sm">{item.product_name}</p>
                                     </div>
-                                    <span className="font-numeric text-white font-bold">{item.total_sold} sold</span>
+                                    <span className="font-numeric text-white font-bold">{item.total_sold} terjual</span>
                                 </div>
                             ))}
                         </div>
@@ -528,10 +528,10 @@ export default function DashboardPage() {
                 <div className="bg-[#0F2A1E] border border-[#1A4D35] p-6">
                     <div className="flex items-center gap-3 mb-4">
                         <Heart className="h-5 w-5 text-[#D64545]" />
-                        <h3 className="font-heading text-white text-sm uppercase tracking-wider">Most Favorited Products</h3>
+                        <h3 className="font-heading text-white text-sm uppercase tracking-wider">Produk Paling Difavoritkan</h3>
                     </div>
                     {topProducts.length === 0 ? (
-                        <p className="text-[#BFD3C6] text-center py-4">No products yet</p>
+                        <p className="text-[#BFD3C6] text-center py-4">Belum ada produk</p>
                     ) : (
                         <div className="space-y-3">
                             {topProducts.map((product, i) => (
@@ -554,16 +554,16 @@ export default function DashboardPage() {
             {/* Recent Orders */}
             <div className="bg-[#0F2A1E] border border-[#1A4D35] p-6">
                 <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-heading text-white text-sm uppercase tracking-wider">Recent Orders</h3>
-                    <Link href="/dashboard/orders" className="text-[#7CFF9B] text-xs uppercase hover:underline">View All</Link>
+                    <h3 className="font-heading text-white text-sm uppercase tracking-wider">Pesanan Terakhir</h3>
+                    <Link href="/dashboard/orders" className="text-[#7CFF9B] text-xs uppercase hover:underline">Lihat Semua</Link>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
                             <tr className="border-b border-[#1A4D35]">
-                                <th className="text-left py-3 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Order ID</th>
-                                <th className="text-left py-3 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Customer</th>
-                                <th className="text-left py-3 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Date</th>
+                                <th className="text-left py-3 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">ID Pesanan</th>
+                                <th className="text-left py-3 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Pelanggan</th>
+                                <th className="text-left py-3 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Tanggal</th>
                                 <th className="text-left py-3 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Total</th>
                                 <th className="text-left py-3 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Status</th>
                             </tr>
@@ -571,7 +571,7 @@ export default function DashboardPage() {
                         <tbody>
                             {recentOrders.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="py-8 text-center text-[#BFD3C6]">No orders yet</td>
+                                    <td colSpan={5} className="py-8 text-center text-[#BFD3C6]">Belum ada pesanan</td>
                                 </tr>
                             ) : (
                                 recentOrders.map((order) => (

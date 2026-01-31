@@ -113,8 +113,8 @@ export default function CustomersPage() {
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
-                    <h1 className="font-heading text-2xl text-white uppercase tracking-wide">Customers</h1>
-                    <p className="text-[#BFD3C6] text-sm mt-1">{filteredCustomers.length} customers ditampilkan</p>
+                    <h1 className="font-heading text-2xl text-white uppercase tracking-wide">Pelanggan</h1>
+                    <p className="text-[#BFD3C6] text-sm mt-1">{filteredCustomers.length} pelanggan ditampilkan</p>
                 </div>
                 <DateFilter
                     filterPeriod={filterPeriod}
@@ -136,7 +136,7 @@ export default function CustomersPage() {
                     </div>
                     <input
                         type="text"
-                        placeholder="Search customers..."
+                        placeholder="Cari Pelanggan..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full bg-[#0A1A13] border border-[#1A4D35] text-white pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#7CFF9B] placeholder:text-[#BFD3C6]/50"
@@ -149,11 +149,11 @@ export default function CustomersPage() {
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-[#1A4D35]">
-                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Customer</th>
+                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Pelanggan</th>
                             <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Email</th>
-                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Phone</th>
-                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Orders</th>
-                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Last Order</th>
+                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Telepon</th>
+                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Pesanan</th>
+                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Pesanan Terakhir</th>
                             <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Status</th>
                         </tr>
                     </thead>
@@ -161,7 +161,7 @@ export default function CustomersPage() {
                         {filteredCustomers.length === 0 ? (
                             <tr>
                                 <td colSpan={6} className="py-12 text-center text-[#BFD3C6]">
-                                    No customers found.
+                                    Tidak ada pelanggan ditemukan.
                                 </td>
                             </tr>
                         ) : (
@@ -173,7 +173,7 @@ export default function CustomersPage() {
                                                 {(customer.name || customer.email).charAt(0).toUpperCase()}
                                             </div>
                                             <span className="text-white font-medium">
-                                                {customer.name || 'Unnamed'}
+                                                {customer.name || 'Tanpa Nama'}
                                             </span>
                                         </div>
                                     </td>

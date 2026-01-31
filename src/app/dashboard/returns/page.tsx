@@ -127,7 +127,7 @@ export default function ReturnsPage() {
         <div className="space-y-6">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
-                    <h1 className="font-heading text-2xl text-white uppercase tracking-wide">Return Requests</h1>
+                    <h1 className="font-heading text-2xl text-white uppercase tracking-wide">Permintaan Pengembalian</h1>
                     <p className="text-[#BFD3C6] text-sm mt-1">{filteredReturns.length} permintaan ditampilkan</p>
                 </div>
                 <DateFilter
@@ -174,10 +174,10 @@ export default function ReturnsPage() {
                 <table className="w-full text-left">
                     <thead>
                         <tr className="border-b border-[#1A4D35]">
-                            <th className="p-4 text-[#BFD3C6] text-xs uppercase font-bold">Order ID</th>
+                            <th className="p-4 text-[#BFD3C6] text-xs uppercase font-bold">ID Pesanan</th>
                             <th className="p-4 text-[#BFD3C6] text-xs uppercase font-bold">Pelanggan</th>
                             <th className="p-4 text-[#BFD3C6] text-xs uppercase font-bold">Alasan</th>
-                            <th className="p-4 text-[#BFD3C6] text-xs uppercase font-bold">Items</th>
+                            <th className="p-4 text-[#BFD3C6] text-xs uppercase font-bold">Item</th>
                             <th className="p-4 text-[#BFD3C6] text-xs uppercase font-bold">Tanggal</th>
                             <th className="p-4 text-[#BFD3C6] text-xs uppercase font-bold">Status</th>
                             <th className="p-4 text-[#BFD3C6] text-xs uppercase font-bold">Aksi</th>
@@ -188,7 +188,7 @@ export default function ReturnsPage() {
                             <tr key={r.id} className="hover:bg-white/5 transition-colors">
                                 <td className="p-4 text-white font-medium">{r.orders?.order_number}</td>
                                 <td className="p-4 text-white">
-                                    <p className="font-medium">{r.profiles?.name || 'Customer'}</p>
+                                    <p className="font-medium">{r.profiles?.name || 'Pelanggan'}</p>
                                     <p className="text-xs text-[#BFD3C6]">{r.profiles?.email}</p>
                                 </td>
                                 <td className="p-4 text-[#BFD3C6] max-w-xs truncate">{r.reason}</td>

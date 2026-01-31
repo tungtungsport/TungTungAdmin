@@ -16,12 +16,12 @@ import {
 } from "lucide-react";
 
 const navItems = [
-    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Products", href: "/dashboard/products", icon: Package },
-    { name: "Orders", href: "/dashboard/orders", icon: ShoppingCart },
-    { name: "Returns", href: "/dashboard/returns", icon: RotateCcw },
-    { name: "Customers", href: "/dashboard/customers", icon: Users },
-    { name: "Favorites", href: "/dashboard/favorites", icon: Heart },
+    { name: "Dasbor", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Produk", href: "/dashboard/products", icon: Package },
+    { name: "Pesanan", href: "/dashboard/orders", icon: ShoppingCart },
+    { name: "Pengembalian", href: "/dashboard/returns", icon: RotateCcw },
+    { name: "Pelanggan", href: "/dashboard/customers", icon: Users },
+    { name: "Favorit", href: "/dashboard/favorites", icon: Heart },
 ];
 
 interface SidebarProps {
@@ -92,7 +92,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                     {collapsed ? <ChevronRight className="h-5 w-5" /> : (
                         <>
                             <ChevronLeft className="h-5 w-5" />
-                            <span className="font-heading text-xs uppercase tracking-wider">Collapse</span>
+                            <span className="font-heading text-xs uppercase tracking-wider">Tutup</span>
                         </>
                     )}
                 </button>

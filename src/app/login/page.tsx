@@ -56,7 +56,7 @@ export default function LoginPage() {
                         TUNG TUNG <span className="text-[#7CFF9B]">SPORT</span>
                     </h1>
                     <p className="text-[#BFD3C6] text-lg max-w-sm">
-                        Admin Dashboard for Managing Your Premium Futsal & Football Store
+                        Dasbor Admin untuk Mengelola Toko Futsal & Sepak Bola Premium Anda
                     </p>
                 </div>
             </div>
@@ -77,8 +77,8 @@ export default function LoginPage() {
                     {/* Login Card */}
                     <div className="bg-[#0F2A1E] border border-[#1A4D35] p-8 rounded-sm">
                         <div className="mb-8">
-                            <h2 className="font-heading text-2xl text-white uppercase tracking-wide">Admin Login</h2>
-                            <p className="text-[#BFD3C6] text-sm mt-2">Enter your admin credentials to access the dashboard</p>
+                            <h2 className="font-heading text-2xl text-white uppercase tracking-wide">Masuk Admin</h2>
+                            <p className="text-[#BFD3C6] text-sm mt-2">Masukkan kredensial admin dan untuk mengakses dasbor</p>
                         </div>
 
                         {error && (
@@ -106,7 +106,7 @@ export default function LoginPage() {
 
                             <div>
                                 <label className="block text-[#BFD3C6] text-xs font-bold uppercase tracking-wider mb-2">
-                                    Password
+                                    Kata Sandi
                                 </label>
                                 <div className="relative">
                                     <input
@@ -114,7 +114,7 @@ export default function LoginPage() {
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         className="w-full bg-[#0A1A13] border border-[#1A4D35] text-white px-4 py-3 pr-12 text-sm focus:outline-none focus:border-[#7CFF9B] transition-colors rounded-sm"
-                                        placeholder="Enter password"
+                                        placeholder="Masukkan kata sandi"
                                         required
                                         disabled={isLoading}
                                     />
@@ -136,12 +136,12 @@ export default function LoginPage() {
                                 {isLoading ? (
                                     <>
                                         <Loader2 className="h-5 w-5 animate-spin" />
-                                        <span>Signing in...</span>
+                                        <span>Memproses...</span>
                                     </>
                                 ) : (
                                     <>
                                         <LogIn className="h-5 w-5" />
-                                        <span>Sign In</span>
+                                        <span>Masuk</span>
                                     </>
                                 )}
                             </button>
@@ -155,7 +155,7 @@ export default function LoginPage() {
                                 </a>
                             </p>
                             <p className="text-center text-[#BFD3C6] text-xs">
-                                Only users with <span className="text-[#7CFF9B] font-bold">admin</span> role can access this panel.
+                                Hanya pengguna dengan role <span className="text-[#7CFF9B] font-bold">admin</span> yang dapat mengakses panel ini.
                             </p>
                         </div>
                     </div>

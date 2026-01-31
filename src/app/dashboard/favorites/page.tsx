@@ -121,8 +121,8 @@ export default function FavoritesPage() {
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
-                    <h1 className="font-heading text-2xl text-white uppercase tracking-wide">Favorites Analytics</h1>
-                    <p className="text-[#BFD3C6] text-sm mt-1">Track customer wishlist behavior</p>
+                    <h1 className="font-heading text-2xl text-white uppercase tracking-wide">Analitik Favorit</h1>
+                    <p className="text-[#BFD3C6] text-sm mt-1">Lacak perilaku wishlist pelanggan</p>
                 </div>
                 <DateFilter
                     filterPeriod={filterPeriod}
@@ -144,7 +144,7 @@ export default function FavoritesPage() {
                             <Heart className="h-6 w-6 fill-current" />
                         </div>
                         <div>
-                            <p className="text-[#BFD3C6] text-xs uppercase">Total Favorites</p>
+                            <p className="text-[#BFD3C6] text-xs uppercase">Total Favorit</p>
                             <p className="font-numeric text-2xl text-white font-bold">{totalFavorites}</p>
                         </div>
                     </div>
@@ -155,7 +155,7 @@ export default function FavoritesPage() {
                             <TrendingUp className="h-6 w-6" />
                         </div>
                         <div>
-                            <p className="text-[#BFD3C6] text-xs uppercase">Avg per Product</p>
+                            <p className="text-[#BFD3C6] text-xs uppercase">Rata-rata per Produk</p>
                             <p className="font-numeric text-2xl text-white font-bold">{avgFavorites}</p>
                         </div>
                     </div>
@@ -166,7 +166,7 @@ export default function FavoritesPage() {
                             <Package className="h-6 w-6" />
                         </div>
                         <div>
-                            <p className="text-[#BFD3C6] text-xs uppercase">Most Favorited</p>
+                            <p className="text-[#BFD3C6] text-xs uppercase">Paling Difavoritkan</p>
                             <p className="text-white font-bold truncate max-w-[150px]">{topProduct?.name || '-'}</p>
                         </div>
                     </div>
@@ -181,7 +181,7 @@ export default function FavoritesPage() {
                     </div>
                     <input
                         type="text"
-                        placeholder="Search products..."
+                        placeholder="Cari produk..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full bg-[#0A1A13] border border-[#1A4D35] text-white pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#7CFF9B] placeholder:text-[#BFD3C6]/50"
@@ -195,10 +195,10 @@ export default function FavoritesPage() {
                     <thead>
                         <tr className="border-b border-[#1A4D35]">
                             <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">#</th>
-                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Product</th>
-                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Brand</th>
-                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Times Favorited</th>
-                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Current Stock</th>
+                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Produk</th>
+                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Merek</th>
+                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Jumlah Difavoritkan</th>
+                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Stok Saat Ini</th>
                             <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Status</th>
                         </tr>
                     </thead>
@@ -206,7 +206,7 @@ export default function FavoritesPage() {
                         {filteredProducts.length === 0 ? (
                             <tr>
                                 <td colSpan={6} className="py-12 text-center text-[#BFD3C6]">
-                                    No favorites found for this period.
+                                    Tidak ada favorit ditemukan untuk periode ini.
                                 </td>
                             </tr>
                         ) : (

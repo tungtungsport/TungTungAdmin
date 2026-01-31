@@ -222,14 +222,14 @@ export default function ProductsPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="font-heading text-2xl text-white uppercase tracking-wide">Products</h1>
-                    <p className="text-[#BFD3C6] text-sm mt-1">{products.length} products in inventory</p>
+                    <h1 className="font-heading text-2xl text-white uppercase tracking-wide">Produk</h1>
+                    <p className="text-[#BFD3C6] text-sm mt-1">{products.length} produk dalam inventaris</p>
                 </div>
                 <button
                     onClick={openAddModal}
                     className="flex items-center gap-2 bg-[#1E7F43] hover:bg-[#1E7F43]/80 text-white px-4 py-2 font-bold uppercase text-sm transition-colors"
                 >
-                    <Plus className="h-4 w-4" /> Add Product
+                    <Plus className="h-4 w-4" /> Tambah Produk
                 </button>
             </div>
 
@@ -242,7 +242,7 @@ export default function ProductsPage() {
                         </div>
                         <input
                             type="text"
-                            placeholder="Search products..."
+                            placeholder="Cari produk..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full bg-[#0A1A13] border border-[#1A4D35] text-white pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#7CFF9B] placeholder:text-[#BFD3C6]/50"
@@ -257,7 +257,7 @@ export default function ProductsPage() {
                             onChange={(e) => setFilterBrand(e.target.value)}
                             className="bg-[#0A1A13] border border-[#1A4D35] text-white px-3 py-2.5 text-sm focus:outline-none focus:border-[#7CFF9B]"
                         >
-                            <option value="">All Brands</option>
+                            <option value="">Semua Merek</option>
                             {brands.map(brand => (
                                 <option key={brand} value={brand}>{brand}</option>
                             ))}
@@ -265,19 +265,19 @@ export default function ProductsPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <span className="text-[#BFD3C6] text-sm uppercase font-bold tracking-wider">Sort:</span>
+                        <span className="text-[#BFD3C6] text-sm uppercase font-bold tracking-wider">Urutkan:</span>
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
                             className="bg-[#0A1A13] border border-[#1A4D35] text-white px-3 py-2.5 text-sm focus:outline-none focus:border-[#7CFF9B]"
                         >
-                            <option value="newest">Newest</option>
-                            <option value="name-asc">Name (A-Z)</option>
-                            <option value="name-desc">Name (Z-A)</option>
-                            <option value="price-asc">Price (Low to High)</option>
-                            <option value="price-desc">Price (High to Low)</option>
-                            <option value="stock-asc">Stock (Low to High)</option>
-                            <option value="stock-desc">Stock (High to Low)</option>
+                            <option value="newest">Terbaru</option>
+                            <option value="name-asc">Nama (A-Z)</option>
+                            <option value="name-desc">Nama (Z-A)</option>
+                            <option value="price-asc">Harga (Rendah ke Tinggi)</option>
+                            <option value="price-desc">Harga (Tinggi ke Rendah)</option>
+                            <option value="stock-asc">Stok (Rendah ke Tinggi)</option>
+                            <option value="stock-desc">Stok (Tinggi ke Rendah)</option>
                         </select>
                     </div>
                 </div>
@@ -288,20 +288,20 @@ export default function ProductsPage() {
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-[#1A4D35]">
-                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Product</th>
-                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Brand</th>
-                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Category</th>
-                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Price</th>
-                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Stock</th>
+                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Produk</th>
+                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Merek</th>
+                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Kategori</th>
+                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Harga</th>
+                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Stok</th>
                             <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Status</th>
-                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Actions</th>
+                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredProducts.length === 0 ? (
                             <tr>
                                 <td colSpan={7} className="py-12 text-center text-[#BFD3C6]">
-                                    No products found. Click "Add Product" to create one.
+                                    Tidak ada produk. Klik "Tambah Produk" untuk membuat.
                                 </td>
                             </tr>
                         ) : (
@@ -351,18 +351,18 @@ export default function ProductsPage() {
                                     <td className="py-4 px-4">
                                         {deleteConfirmId === product.id ? (
                                             <div className="flex items-center gap-2">
-                                                <span className="text-[#D64545] text-xs">Delete?</span>
+                                                <span className="text-[#D64545] text-xs">Hapus?</span>
                                                 <button
                                                     onClick={() => handleDelete(product.id)}
                                                     className="px-2 py-1 bg-[#D64545] text-white text-xs font-bold"
                                                 >
-                                                    Yes
+                                                    Ya
                                                 </button>
                                                 <button
                                                     onClick={() => setDeleteConfirmId(null)}
                                                     className="px-2 py-1 bg-gray-600 text-white text-xs font-bold"
                                                 >
-                                                    No
+                                                    Tidak
                                                 </button>
                                             </div>
                                         ) : (
@@ -370,14 +370,14 @@ export default function ProductsPage() {
                                                 <button
                                                     onClick={() => openEditModal(product)}
                                                     className="p-1.5 text-[#BFD3C6] hover:text-[#7CFF9B] transition-colors"
-                                                    title="Edit"
+                                                    title="Ubah"
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => setDeleteConfirmId(product.id)}
                                                     className="p-1.5 text-[#BFD3C6] hover:text-[#D64545] transition-colors"
-                                                    title="Delete"
+                                                    title="Hapus"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
@@ -398,7 +398,7 @@ export default function ProductsPage() {
                         {/* Modal Header */}
                         <div className="flex items-center justify-between p-4 border-b border-[#1A4D35]">
                             <h2 className="font-heading text-lg text-white uppercase">
-                                {editingProduct ? 'Edit Product' : 'Add New Product'}
+                                {editingProduct ? 'Ubah Produk' : 'Tambah Produk Baru'}
                             </h2>
                             <button onClick={closeModal} className="text-[#BFD3C6] hover:text-white">
                                 <X className="h-5 w-5" />
@@ -408,7 +408,7 @@ export default function ProductsPage() {
                         {/* Modal Body */}
                         <div className="p-4 space-y-4">
                             <div>
-                                <label className="block text-[#BFD3C6] text-xs uppercase mb-1">Product Name *</label>
+                                <label className="block text-[#BFD3C6] text-xs uppercase mb-1">Nama Produk *</label>
                                 <input
                                     type="text"
                                     value={formData.name}
@@ -419,7 +419,7 @@ export default function ProductsPage() {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[#BFD3C6] text-xs uppercase mb-1">Brand *</label>
+                                    <label className="block text-[#BFD3C6] text-xs uppercase mb-1">Merek *</label>
                                     <input
                                         type="text"
                                         value={formData.brand}
@@ -429,7 +429,7 @@ export default function ProductsPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[#BFD3C6] text-xs uppercase mb-1">Category</label>
+                                    <label className="block text-[#BFD3C6] text-xs uppercase mb-1">Kategori</label>
                                     <select
                                         value={formData.category}
                                         onChange={(e) => handleFormChange('category', e.target.value)}
@@ -443,7 +443,7 @@ export default function ProductsPage() {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[#BFD3C6] text-xs uppercase mb-1">Price (Rp)</label>
+                                    <label className="block text-[#BFD3C6] text-xs uppercase mb-1">Harga (Rp)</label>
                                     <input
                                         type="number"
                                         value={formData.price}
@@ -452,7 +452,7 @@ export default function ProductsPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[#BFD3C6] text-xs uppercase mb-1">Stock</label>
+                                    <label className="block text-[#BFD3C6] text-xs uppercase mb-1">Stok</label>
                                     <input
                                         type="number"
                                         value={formData.stock}
@@ -468,17 +468,17 @@ export default function ProductsPage() {
                                     onChange={(e) => handleFormChange('status', e.target.value)}
                                     className="w-full bg-[#0A1A13] border border-[#1A4D35] text-white px-3 py-2 text-sm focus:outline-none focus:border-[#7CFF9B]"
                                 >
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                    <option value="low_stock">Low Stock</option>
+                                    <option value="active">Aktif</option>
+                                    <option value="inactive">Tidak Aktif</option>
+                                    <option value="low_stock">Stok Rendah</option>
                                 </select>
                             </div>
 
                             {/* Media Section */}
                             <div className="border-t border-[#1A4D35] pt-4 mt-4">
-                                <label className="block text-[#BFD3C6] text-xs uppercase mb-3">Product Media</label>
+                                <label className="block text-[#BFD3C6] text-xs uppercase mb-3">Media Produk</label>
                                 <div className="mb-4">
-                                    <label className="block text-[#BFD3C6] text-xs mb-1">Image URL (HTTP link or Base64)</label>
+                                    <label className="block text-[#BFD3C6] text-xs mb-1">URL Gambar (link HTTP atau Base64)</label>
                                     <input
                                         type="text"
                                         value={imageUrls}
@@ -488,7 +488,7 @@ export default function ProductsPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[#BFD3C6] text-xs mb-1">Video URL (optional)</label>
+                                    <label className="block text-[#BFD3C6] text-xs mb-1">URL Video (opsional)</label>
                                     <input
                                         type="text"
                                         value={videoUrl}
@@ -506,7 +506,7 @@ export default function ProductsPage() {
                                 onClick={closeModal}
                                 className="px-4 py-2 text-[#BFD3C6] hover:text-white text-sm uppercase font-bold transition-colors"
                             >
-                                Cancel
+                                Batal
                             </button>
                             <button
                                 onClick={handleSave}
@@ -518,7 +518,7 @@ export default function ProductsPage() {
                                 ) : (
                                     <Save className="h-4 w-4" />
                                 )}
-                                {editingProduct ? 'Update' : 'Save'}
+                                {editingProduct ? 'Perbarui' : 'Simpan'}
                             </button>
                         </div>
                     </div>
