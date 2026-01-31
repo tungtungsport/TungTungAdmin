@@ -207,10 +207,25 @@ export default function DashboardPage() {
                 .limit(5);
             setTopProducts(topProductsData || []);
 
-            // Fetch best sellers from order_items
-            const { data: orderItemsData } = await supabase
+            // Fetch best sellers from order_items with date filter
+            let orderItemsQuery = supabase
                 .from('order_items')
-                .select('product_id, product_name, quantity');
+                .select(`
+                    product_id, 
+                    product_name, 
+                    quantity,
+                    orders!inner(created_at, status)
+                `)
+                .eq('orders.status', 'SELESAI');
+
+            // Apply date filter to order_items via orders
+            if (startDate && endDate) {
+                orderItemsQuery = orderItemsQuery
+                    .gte('orders.created_at', startDate)
+                    .lte('orders.created_at', endDate);
+            }
+
+            const { data: orderItemsData } = await orderItemsQuery;
 
             // Aggregate best sellers
             const salesMap: Record<string, { name: string; total: number }> = {};
@@ -226,49 +241,105 @@ export default function DashboardPage() {
                 .slice(0, 5);
             setBestSellers(bestSellersArr);
 
-            // Fetch daily sales for the last 7 days
-            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            // Fetch daily sales - respects filter or defaults to last 7 days
+            const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
             const salesByDay: DailySales[] = [];
-            for (let i = 6; i >= 0; i--) {
-                const date = new Date();
-                date.setDate(date.getDate() - i);
-                const dayStr = date.toISOString().split('T')[0];
-                const { data: daySalesData } = await supabase
-                    .from('orders')
-                    .select('total')
-                    .gte('created_at', `${dayStr}T00:00:00`)
-                    .lt('created_at', `${dayStr}T23:59:59`);
-                const daySales = daySalesData?.reduce((sum, o) => sum + o.total, 0) || 0;
-                salesByDay.push({ day: days[date.getDay()], sales: daySales });
+
+            if (startDate && endDate) {
+                // When filtered, show daily breakdown within the filter period
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+                const daysToShow = Math.min(daysDiff + 1, 14); // Max 14 days
+
+                for (let i = daysToShow - 1; i >= 0; i--) {
+                    const date = new Date(end);
+                    date.setDate(end.getDate() - i);
+                    const dayStr = date.toISOString().split('T')[0];
+                    const { data: daySalesData } = await supabase
+                        .from('orders')
+                        .select('total')
+                        .gte('created_at', `${dayStr}T00:00:00`)
+                        .lt('created_at', `${dayStr}T23:59:59`)
+                        .eq('status', 'SELESAI');
+                    const daySales = daySalesData?.reduce((sum, o) => sum + o.total, 0) || 0;
+                    salesByDay.push({ day: `${date.getDate()}/${date.getMonth() + 1}`, sales: daySales });
+                }
+            } else {
+                // Default: last 7 days
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date();
+                    date.setDate(date.getDate() - i);
+                    const dayStr = date.toISOString().split('T')[0];
+                    const { data: daySalesData } = await supabase
+                        .from('orders')
+                        .select('total')
+                        .gte('created_at', `${dayStr}T00:00:00`)
+                        .lt('created_at', `${dayStr}T23:59:59`)
+                        .eq('status', 'SELESAI');
+                    const daySales = daySalesData?.reduce((sum, o) => sum + o.total, 0) || 0;
+                    salesByDay.push({ day: days[date.getDay()], sales: daySales });
+                }
             }
             setDailySales(salesByDay);
 
-            // Fetch monthly sales for the last 6 months
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            // Fetch monthly sales - respects filter or defaults to last 6 months
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
             const monthlyData: MonthlySales[] = [];
             let cumulative = 0;
-            for (let i = 5; i >= 0; i--) {
-                const date = new Date();
-                date.setMonth(date.getMonth() - i);
-                const year = date.getFullYear();
-                const month = date.getMonth();
-                const startOfMonth = `${year}-${String(month + 1).padStart(2, '0')}-01T00:00:00`;
-                const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
 
-                const { data: monthSalesData } = await supabase
-                    .from('orders')
-                    .select('total')
-                    .gte('created_at', startOfMonth)
-                    .lte('created_at', endOfMonth)
-                    .eq('status', 'SELESAI');
+            if (filterPeriod === 'specific_month' || filterPeriod === 'specific_date') {
+                // Show the selected month and surrounding months
+                const targetMonth = filterPeriod === 'specific_month' ? selectedMonth : new Date(selectedDate).getMonth();
+                const targetYear = filterPeriod === 'specific_month' ? selectedYear : new Date(selectedDate).getFullYear();
 
-                const monthTotal = monthSalesData?.reduce((sum, o) => sum + o.total, 0) || 0;
-                cumulative += monthTotal;
-                monthlyData.push({
-                    month: months[month],
-                    sales: monthTotal,
-                    cumulative: cumulative
-                });
+                for (let offset = -2; offset <= 3; offset++) {
+                    const date = new Date(targetYear, targetMonth + offset, 1);
+                    const year = date.getFullYear();
+                    const month = date.getMonth();
+                    const startOfMonth = `${year}-${String(month + 1).padStart(2, '0')}-01T00:00:00`;
+                    const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
+
+                    const { data: monthSalesData } = await supabase
+                        .from('orders')
+                        .select('total')
+                        .gte('created_at', startOfMonth)
+                        .lte('created_at', endOfMonth)
+                        .eq('status', 'SELESAI');
+
+                    const monthTotal = monthSalesData?.reduce((sum, o) => sum + o.total, 0) || 0;
+                    cumulative += monthTotal;
+                    monthlyData.push({
+                        month: months[month],
+                        sales: monthTotal,
+                        cumulative: cumulative
+                    });
+                }
+            } else {
+                // Default: last 6 months
+                for (let i = 5; i >= 0; i--) {
+                    const date = new Date();
+                    date.setMonth(date.getMonth() - i);
+                    const year = date.getFullYear();
+                    const month = date.getMonth();
+                    const startOfMonth = `${year}-${String(month + 1).padStart(2, '0')}-01T00:00:00`;
+                    const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
+
+                    const { data: monthSalesData } = await supabase
+                        .from('orders')
+                        .select('total')
+                        .gte('created_at', startOfMonth)
+                        .lte('created_at', endOfMonth)
+                        .eq('status', 'SELESAI');
+
+                    const monthTotal = monthSalesData?.reduce((sum, o) => sum + o.total, 0) || 0;
+                    cumulative += monthTotal;
+                    monthlyData.push({
+                        month: months[month],
+                        sales: monthTotal,
+                        cumulative: cumulative
+                    });
+                }
             }
             setMonthlySales(monthlyData);
 
