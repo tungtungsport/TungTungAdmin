@@ -124,21 +124,24 @@ export default function DashboardPage() {
                 endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
                 break;
             case 'weekly':
-                const dayOfWeek = now.getDay();
+                // Minggu ini: today + 6 days back (7 days total)
                 startDate = new Date(now);
-                startDate.setDate(now.getDate() - dayOfWeek);
+                startDate.setDate(now.getDate() - 6);
                 startDate.setHours(0, 0, 0, 0);
-                endDate = new Date(startDate);
-                endDate.setDate(startDate.getDate() + 6);
-                endDate.setHours(23, 59, 59, 999);
+                endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
                 break;
             case 'monthly':
-                startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-                endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                // Bulan ini: today + 29 days back (30 days total)
+                startDate = new Date(now);
+                startDate.setDate(now.getDate() - 29);
+                startDate.setHours(0, 0, 0, 0);
+                endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
                 break;
             case 'yearly':
-                startDate = new Date(now.getFullYear(), 0, 1);
-                endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+                // Tahun ini: current month + 11 months back (12 months)
+                startDate = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+                startDate.setHours(0, 0, 0, 0);
+                endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
                 break;
             case 'specific_month':
                 startDate = new Date(selectedYear, selectedMonth, 1);
@@ -248,16 +251,37 @@ export default function DashboardPage() {
                 .slice(0, 5);
             setBestSellers(bestSellersArr);
 
-            // Fetch daily sales - respects filter or defaults to last 7 days
+            // Fetch sales chart data - daily for most filters, monthly for yearly
             const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
             const salesByDay: DailySales[] = [];
 
-            if (startDate && endDate) {
+            if (filterPeriod === 'yearly') {
+                // For yearly view, show monthly data (last 12 months)
+                for (let i = 11; i >= 0; i--) {
+                    const date = new Date();
+                    date.setMonth(date.getMonth() - i);
+                    const year = date.getFullYear();
+                    const month = date.getMonth();
+                    const startOfMonth = `${year}-${String(month + 1).padStart(2, '0')}-01T00:00:00`;
+                    const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
+
+                    const { data: monthSalesData } = await supabase
+                        .from('orders')
+                        .select('total')
+                        .gte('created_at', startOfMonth)
+                        .lte('created_at', endOfMonth)
+                        .eq('status', 'SELESAI');
+
+                    const monthSales = monthSalesData?.reduce((sum, o) => sum + o.total, 0) || 0;
+                    salesByDay.push({ day: months[month], sales: monthSales });
+                }
+            } else if (startDate && endDate) {
                 // When filtered, show daily breakdown within the filter period
                 const start = new Date(startDate);
                 const end = new Date(endDate);
                 const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-                const daysToShow = Math.min(daysDiff + 1, 14); // Max 14 days
+                const daysToShow = Math.min(daysDiff + 1, 31); // Max 31 days
 
                 for (let i = daysToShow - 1; i >= 0; i--) {
                     const date = new Date(end);
@@ -291,7 +315,6 @@ export default function DashboardPage() {
             setDailySales(salesByDay);
 
             // Fetch monthly sales - respects filter or defaults to last 6 months
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
             const monthlyData: MonthlySales[] = [];
             let cumulative = 0;
 
@@ -488,10 +511,24 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <BarChart3 className="h-5 w-5 text-[#7CFF9B]" />
-                        <h3 className="font-heading text-white text-sm uppercase tracking-wider">Penjualan dari Waktu ke Waktu (7 Hari Terakhir)</h3>
+                        <h3 className="font-heading text-white text-sm uppercase tracking-wider">
+                            Penjualan dari Waktu ke Waktu
+                            {filterPeriod === 'weekly' && ' (7 Hari Terakhir)'}
+                            {filterPeriod === 'monthly' && ' (30 Hari Terakhir)'}
+                            {filterPeriod === 'yearly' && ' (12 Bulan Terakhir)'}
+                            {filterPeriod === 'daily' && ' (Hari Ini)'}
+                            {filterPeriod === 'all' && ' (7 Hari Terakhir)'}
+                        </h3>
                     </div>
                     <div className="text-right">
-                        <p className="text-[#BFD3C6] text-xs">Total Mingguan</p>
+                        <p className="text-[#BFD3C6] text-xs">
+                            {filterPeriod === 'daily' && 'Total Harian'}
+                            {filterPeriod === 'weekly' && 'Total Mingguan'}
+                            {filterPeriod === 'monthly' && 'Total Bulanan'}
+                            {filterPeriod === 'yearly' && 'Total Tahunan'}
+                            {filterPeriod === 'all' && 'Total Mingguan'}
+                            {(filterPeriod === 'specific_month' || filterPeriod === 'specific_date') && 'Total Periode'}
+                        </p>
                         <p className="font-numeric text-[#7CFF9B] font-bold">{formatCurrency(totalWeekSales)}</p>
                     </div>
                 </div>
@@ -514,69 +551,7 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* Monthly Total Sales Chart */}
-            <div className="bg-[#0F2A1E] border border-[#1A4D35] p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                        <TrendingUp className="h-5 w-5 text-[#7CFF9B]" />
-                        <h3 className="font-heading text-white text-sm uppercase tracking-wider">Tren Total Penjualan (6 Bulan Terakhir)</h3>
-                    </div>
-                    <div className="text-right">
-                        <p className="text-[#BFD3C6] text-xs">Total Kumulatif</p>
-                        <p className="font-numeric text-[#7CFF9B] font-bold">
-                            {formatCurrency(monthlySales[monthlySales.length - 1]?.cumulative || 0)}
-                        </p>
-                    </div>
-                </div>
-                <div className="relative">
-                    {/* Bar Chart with Cumulative Line */}
-                    <div className="flex items-end justify-between gap-4 h-48">
-                        {monthlySales.map((data, i) => {
-                            const maxMonthSales = Math.max(...monthlySales.map(d => d.sales), 1);
-                            const maxCumulative = monthlySales[monthlySales.length - 1]?.cumulative || 1;
-                            const barHeight = (data.sales / maxMonthSales) * 100;
-                            const lineY = 100 - ((data.cumulative / maxCumulative) * 80);
 
-                            return (
-                                <div key={i} className="flex-1 flex flex-col items-center gap-2 relative">
-                                    <div className="w-full flex flex-col items-center justify-end h-40 relative">
-                                        {/* Bar */}
-                                        <div
-                                            className="w-full bg-[#1E7F43] hover:bg-[#7CFF9B] transition-colors cursor-pointer group relative"
-                                            style={{ height: `${barHeight}%`, minHeight: '8px' }}
-                                        >
-                                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-[#0A1A13] border border-[#1A4D35] px-2 py-1 text-xs text-white whitespace-nowrap z-10">
-                                                {formatCurrency(data.sales)}
-                                            </div>
-                                        </div>
-                                        {/* Cumulative dot */}
-                                        <div
-                                            className="absolute w-3 h-3 bg-cyan-400 rounded-full border-2 border-white shadow-lg z-20 group cursor-pointer"
-                                            style={{ bottom: `${(data.cumulative / maxCumulative) * 80}%`, left: '50%', transform: 'translateX(-50%)' }}
-                                        >
-                                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-[#0A1A13] border border-cyan-500/50 px-2 py-1 text-xs text-cyan-400 whitespace-nowrap z-30">
-                                                Total: {formatCurrency(data.cumulative)}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <span className="text-[#BFD3C6] text-xs font-bold">{data.month}</span>
-                                </div>
-                            );
-                        })}
-                    </div>
-                    {/* Legend */}
-                    <div className="flex items-center justify-center gap-6 mt-4 pt-4 border-t border-[#1A4D35]">
-                        <div className="flex items-center gap-2">
-                            <div className="w-4 h-3 bg-[#1E7F43] rounded-sm"></div>
-                            <span className="text-[#BFD3C6] text-xs">Penjualan Bulanan</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 bg-cyan-400 rounded-full"></div>
-                            <span className="text-[#BFD3C6] text-xs">Total Kumulatif</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Best Selling Products */}

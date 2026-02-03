@@ -1,8 +1,8 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Heart, TrendingUp, Package, Search, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Heart, TrendingUp, Package, Search, Loader2, User, X, ArrowUpDown } from "lucide-react";
 import { DateFilter, useDateFilter } from "@/components/DateFilter";
 
 interface FavoriteProduct {
@@ -14,10 +14,22 @@ interface FavoriteProduct {
     status: string;
 }
 
+interface FavoriteDetail {
+    user_id: string;
+    user_name: string;
+    user_email: string;
+    created_at: string;
+}
+
 export default function FavoritesPage() {
     const [products, setProducts] = useState<FavoriteProduct[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState<FavoriteProduct | null>(null);
+    const [favoriteDetails, setFavoriteDetails] = useState<FavoriteDetail[]>([]);
+    const [loadingDetails, setLoadingDetails] = useState(false);
+    const [sortAsc, setSortAsc] = useState(false); // false = desc (newest first)
 
     // Date filter
     const {
@@ -97,6 +109,51 @@ export default function FavoritesPage() {
             }
         }
         setIsLoading(false);
+    };
+
+    const openFavoriteModal = async (product: FavoriteProduct) => {
+        setSelectedProduct(product);
+        setModalOpen(true);
+        setLoadingDetails(true);
+        setFavoriteDetails([]);
+
+        const { startDate, endDate } = getDateRange;
+
+        // Fetch favorites with user details
+        let query = supabase
+            .from('favorites')
+            .select(`
+                user_id,
+                created_at,
+                profiles!inner(name, email)
+            `)
+            .eq('product_id', product.id);
+
+        if (startDate && endDate) {
+            query = query.gte('created_at', startDate).lte('created_at', endDate);
+        }
+
+        const { data, error } = await query.order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching favorite details:', error);
+        } else {
+            const details: FavoriteDetail[] = (data || []).map((fav: any) => ({
+                user_id: fav.user_id,
+                user_name: fav.profiles?.name || 'Unknown',
+                user_email: fav.profiles?.email || '',
+                created_at: fav.created_at
+            }));
+
+            setFavoriteDetails(details);
+        }
+
+        setLoadingDetails(false);
+    };
+
+    const toggleSort = () => {
+        setSortAsc(!sortAsc);
+        setFavoriteDetails([...favoriteDetails].reverse());
     };
 
     const filteredProducts = products.filter(p =>
@@ -200,6 +257,7 @@ export default function FavoritesPage() {
                             <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Jumlah Difavoritkan</th>
                             <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Stok Saat Ini</th>
                             <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Status</th>
+                            <th className="text-left py-4 px-4 text-[#BFD3C6] text-xs uppercase font-bold tracking-wider">Detail</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -237,12 +295,98 @@ export default function FavoritesPage() {
                                             {product.status.replace('_', ' ')}
                                         </span>
                                     </td>
+                                    <td className="py-4 px-4">
+                                        <button
+                                            onClick={() => openFavoriteModal(product)}
+                                            className="px-3 py-1.5 bg-[#1E7F43]/20 hover:bg-[#1E7F43]/30 text-[#7CFF9B] text-xs font-bold uppercase border border-[#7CFF9B]/30 transition-colors"
+                                        >
+                                            Lihat
+                                        </button>
+                                    </td>
                                 </tr>
                             ))
                         )}
                     </tbody>
                 </table>
             </div>
+
+            {/* Modal */}
+            {modalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => setModalOpen(false)}>
+                    <div className="bg-[#0F2A1E] border-2 border-[#1A4D35] w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col m-4" onClick={(e) => e.stopPropagation()}>
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-[#1A4D35]">
+                            <div>
+                                <h3 className="text-xl font-heading text-white uppercase tracking-wider">Detail Favorit</h3>
+                                <p className="text-sm text-[#BFD3C6] mt-1">{selectedProduct?.name}</p>
+                            </div>
+                            <button
+                                onClick={() => setModalOpen(false)}
+                                className="p-2 hover:bg-[#1A4D35]/50 transition-colors"
+                            >
+                                <X className="h-5 w-5 text-[#BFD3C6]" />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="flex-1 overflow-y-auto p-6">
+                            {loadingDetails ? (
+                                <div className="flex items-center justify-center py-12">
+                                    <Loader2 className="h-8 w-8 animate-spin text-[#7CFF9B]" />
+                                </div>
+                            ) : favoriteDetails.length > 0 ? (
+                                <>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <p className="text-sm text-[#BFD3C6]">
+                                            <span className="font-bold text-[#7CFF9B]">{favoriteDetails.length}</span> pengguna menyukai produk ini
+                                        </p>
+                                        <button
+                                            onClick={toggleSort}
+                                            className="flex items-center gap-2 px-3 py-1.5 bg-[#1E7F43]/20 hover:bg-[#1E7F43]/30 text-[#7CFF9B] text-xs font-bold uppercase border border-[#7CFF9B]/30 transition-colors"
+                                        >
+                                            <ArrowUpDown className="h-3 w-3" />
+                                            {sortAsc ? 'Terlama' : 'Terbaru'}
+                                        </button>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {favoriteDetails.map((detail, idx) => (
+                                            <div key={idx} className="flex items-center gap-4 bg-[#0A1A13] border border-[#1A4D35] p-4 hover:bg-[#1A4D35]/20 transition-colors">
+                                                <div className="p-3 bg-[#1E7F43]/20 text-[#7CFF9B] flex-shrink-0">
+                                                    <User className="h-5 w-5" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-white font-medium">{detail.user_name}</p>
+                                                    <p className="text-[#BFD3C6] text-sm truncate">{detail.user_email}</p>
+                                                </div>
+                                                <div className="text-right flex-shrink-0">
+                                                    <p className="text-[#7CFF9B] text-sm font-medium">
+                                                        {new Date(detail.created_at).toLocaleDateString('id-ID', {
+                                                            day: 'numeric',
+                                                            month: 'short',
+                                                            year: 'numeric'
+                                                        })}
+                                                    </p>
+                                                    <p className="text-[#BFD3C6] text-xs">
+                                                        {new Date(detail.created_at).toLocaleTimeString('id-ID', {
+                                                            hour: '2-digit',
+                                                            minute: '2-digit'
+                                                        })}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <Heart className="h-12 w-12 text-[#BFD3C6]/30 mx-auto mb-4" />
+                                    <p className="text-[#BFD3C6]">Tidak ada data favorit untuk periode ini</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
