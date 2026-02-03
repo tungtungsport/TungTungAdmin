@@ -9,6 +9,13 @@ import { useState, useEffect, useMemo } from "react";
 type FilterPeriod = 'all' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'specific_month' | 'specific_date';
 const MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
+const formatCurrency = (value: number) => {
+    if (value >= 1_000_000_000) {
+        return `Rp ${(value / 1_000_000_000).toFixed(1).replace('.', ',')} M`;
+    }
+    return `Rp ${value.toLocaleString('id-ID')}`;
+};
+
 interface DashboardStats {
     totalSales: number;
     totalOrders: number;
@@ -455,7 +462,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
                     title="Total Penjualan"
-                    value={`Rp ${(stats.totalSales / 1000000).toFixed(1)}M`}
+                    value={formatCurrency(stats.totalSales)}
                     icon={TrendingUp}
                 />
                 <StatCard
@@ -485,7 +492,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="text-right">
                         <p className="text-[#BFD3C6] text-xs">Total Mingguan</p>
-                        <p className="font-numeric text-[#7CFF9B] font-bold">Rp {(totalWeekSales / 1000000).toFixed(1)}M</p>
+                        <p className="font-numeric text-[#7CFF9B] font-bold">{formatCurrency(totalWeekSales)}</p>
                     </div>
                 </div>
                 <div className="flex items-end justify-between gap-3 h-48">
@@ -497,7 +504,7 @@ export default function DashboardPage() {
                                     style={{ height: `${(data.sales / maxSales) * 100}%`, minHeight: '8px' }}
                                 >
                                     <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-[#0A1A13] border border-[#1A4D35] px-2 py-1 text-xs text-white whitespace-nowrap z-10">
-                                        Rp {(data.sales / 1000000).toFixed(1)}M
+                                        {formatCurrency(data.sales)}
                                     </div>
                                 </div>
                             </div>
@@ -517,7 +524,7 @@ export default function DashboardPage() {
                     <div className="text-right">
                         <p className="text-[#BFD3C6] text-xs">Total Kumulatif</p>
                         <p className="font-numeric text-[#7CFF9B] font-bold">
-                            Rp {((monthlySales[monthlySales.length - 1]?.cumulative || 0) / 1000000).toFixed(1)}M
+                            {formatCurrency(monthlySales[monthlySales.length - 1]?.cumulative || 0)}
                         </p>
                     </div>
                 </div>
@@ -539,7 +546,7 @@ export default function DashboardPage() {
                                             style={{ height: `${barHeight}%`, minHeight: '8px' }}
                                         >
                                             <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-[#0A1A13] border border-[#1A4D35] px-2 py-1 text-xs text-white whitespace-nowrap z-10">
-                                                Rp {(data.sales / 1000000).toFixed(1)}M
+                                                {formatCurrency(data.sales)}
                                             </div>
                                         </div>
                                         {/* Cumulative dot */}
@@ -548,7 +555,7 @@ export default function DashboardPage() {
                                             style={{ bottom: `${(data.cumulative / maxCumulative) * 80}%`, left: '50%', transform: 'translateX(-50%)' }}
                                         >
                                             <div className="absolute -top-8 left-1/2 -translate-x-1/2 hidden group-hover:block bg-[#0A1A13] border border-cyan-500/50 px-2 py-1 text-xs text-cyan-400 whitespace-nowrap z-30">
-                                                Total: Rp {(data.cumulative / 1000000).toFixed(1)}M
+                                                Total: {formatCurrency(data.cumulative)}
                                             </div>
                                         </div>
                                     </div>
